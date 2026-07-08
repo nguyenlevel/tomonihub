@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOMONI HUB - Hệ Thống Giám Sát Phân Vùng KCN ECO-01</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .transition-all-300 {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-[#0b0f19] text-slate-100 min-h-screen font-sans transition-all-300">
+
+    <div class="flex flex-col min-h-screen">
+        <!-- TOP HEADER & CONTROLLER -->
+        <header class="border-b border-slate-800 bg-[#0f172a] px-6 py-4 flex flex-col xl:flex-row justify-between items-center gap-4 sticky top-0 z-50">
+            <div class="flex items-center gap-3">
+                <div class="bg-slate-900 p-0.5 rounded-lg border border-slate-800 shadow-lg shadow-sky-500/5 flex items-center justify-center overflow-hidden h-12 w-16">
+                    <img src="logo tomonihub 2026.png" alt="TOMONI HUB Logo" class="h-full w-full object-cover rounded" onerror="this.src='https://placehold.co/100x100/0f172a/38bdf8?text=TH'">
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-sky-400 to-emerald-400 bg-clip-text text-transparent font-mono">TOMONI HUB</h1>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">V2.6-LIVE-API</span>
+                    </div>
+                    <p class="text-xs text-slate-400">Trạm Giám Sát Phân Vùng Công Nghệ Nước Thải - KCN ECO-01</p>
+                </div>
+            </div>
+
+            <!-- INTERACTIVE CONTROL PANEL -->
+            <div class="flex flex-wrap items-center gap-3 bg-slate-900/90 p-2 rounded-xl border border-slate-800/80">
+                <!-- Live connection status badge -->
+                <div class="flex items-center gap-2 px-3 py-1 bg-emerald-950/40 text-emerald-400 border border-emerald-900/40 rounded-lg text-xs font-semibold">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span id="txt-connection-mode">Mô Phỏng Thực Tế (Live)</span>
+                </div>
+
+                <div class="h-6 w-[1px] bg-slate-800 hidden xl:block"></div>
+
+                <!-- Theme Selector -->
+                <div class="flex items-center gap-1.5 px-2">
+                    <span class="text-xs font-semibold text-slate-400 mr-1"><i class="fa-solid fa-palette text-sky-400"></i> Giao diện:</span>
+                    <button onclick="switchTheme('scada')" id="btn-theme-scada" class="px-2.5 py-1 text-xs font-medium rounded transition-all duration-150 border border-transparent hover:border-slate-700 bg-slate-800 text-slate-300">
+                        SCADA Dark
+                    </button>
+                    <button onclick="switchTheme('navy')" id="btn-theme-navy" class="px-2.5 py-1 text-xs font-medium rounded transition-all duration-150 border border-transparent hover:border-slate-700 bg-sky-600 text-white font-semibold">
+                        Modern Navy
+                    </button>
+                    <button onclick="switchTheme('eco')" id="btn-theme-eco" class="px-2.5 py-1 text-xs font-medium rounded transition-all duration-150 border border-transparent hover:border-slate-700 bg-slate-800 text-slate-300">
+                        Eco Emerald
+                    </button>
+                </div>
+
+                <div class="h-6 w-[1px] bg-slate-800 hidden xl:block"></div>
+
+                <!-- Error Toggle Simulator -->
+                <button onclick="toggleErrorState()" id="btn-error-toggle" class="flex items-center gap-2 px-3 py-1 bg-rose-950/40 text-rose-400 hover:bg-rose-900/50 border border-rose-800/60 rounded-lg text-xs font-semibold transition-all">
+                    <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
+                    <span>Giả lập lỗi "No Data"</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT WRAPPER -->
+        <main class="flex-grow p-6 grid grid-cols-1 xl:grid-cols-4 gap-6">
+            
+            <!-- LEFT PANEL: STATUS & PROCESS CHECKLIST -->
+            <section class="xl:col-span-1 flex flex-col gap-6">
+                <!-- Status Card -->
+                <div class="bg-[#0f172a] rounded-xl border border-slate-800 p-5 shadow-lg relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-sky-500/5 rounded-full blur-2xl"></div>
+                    <h3 class="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider font-mono">Trạng Thái Trạm</h3>
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="relative flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" id="status-pulse-ping"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" id="status-pulse-dot"></span>
+                        </span>
+                        <div>
+                            <span class="text-lg font-bold" id="txt-sys-status">ONLINE (Bình thường)</span>
+                            <p class="text-[11px] text-slate-400">ID Trạm: <span class="font-mono text-slate-200">station_eco01_01</span></p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 border-t border-slate-800/80 pt-3 text-xs text-slate-400">
+                        <div class="flex justify-between">
+                            <span>Phân vùng giám sát:</span>
+                            <span class="text-sky-400 font-semibold" id="txt-active-zone-label">Tất cả các bể</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Cập nhật cuối:</span>
+                            <span class="text-slate-200 font-mono" id="txt-last-update">Vừa xong</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Process Stages Checklist -->
+                <div class="bg-[#0f172a] rounded-xl border border-slate-800 p-5 shadow-lg flex-grow flex flex-col">
+                    <h3 class="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider font-mono"><i class="fa-solid fa-industry text-sky-400 mr-1.5"></i>Bản Đồ Cảm Biến Kỹ Thuật</h3>
+                    <div class="space-y-2 overflow-y-auto max-h-[460px] pr-1 flex-grow">
+                        <!-- Group Equalization -->
+                        <div class="border-l-2 border-amber-500 pl-2.5 py-1 space-y-1.5">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-500">Bể Điều Hòa (Đầu vào)</span>
+                            <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
+                                <span class="text-slate-300 font-mono">ph_dieu_hoa</span>
+                                <span class="text-[10px] font-semibold text-emerald-400" id="side-ph-dieu-hoa">7.15 pH</span>
+                            </div>
+                            <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
+                                <span class="text-slate-300 font-mono">tss_dieu_hoa</span>
+                                <span class="text-[10px] font-semibold text-amber-400" id="side-tss-dieu-hoa">185.0 mg/L</span>
+                            </div>
+                        </div>
+
+                        <!-- Group Bio-Tanks -->
+                        <div class="border-l-2 border-emerald-500 pl-2.5 py-1 space-y-1.5 mt-3">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-500">Bể Sinh Học (Thiếu Khí &amp; Hiếu Khí)</span>
+                            <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
+                                <span class="text-slate-300 font-mono">do_thieu_khi (Anoxic)</span>
+                                <span class="text-[10px] font-semibold text-emerald-400" id="side-do-thieu-khi">0.24 mg/L</span>
+                            </div>
+                            <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
+                                <span class="text-slate-300 font-mono">do_hieu_khi (Aerobic)</span>
+                                <span class="text-[10px] font-semibold text-emerald-400" id="side-do-hieu-khi">2.15 mg/L</span>
+                            </div>
+                            <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
+                                <span class="text-slate-300 font-mono">cod_hieu_khi</span>
+                                <span class="text-[10px] font-semibold text-emerald-400" id="side-cod-hieu-khi">182.4 mg/L</span>
+                            </div>
+                            <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
+                                <span class="text-slate-300 font-mono">mlss_hieu_khi</span>
+                                <span class="text-[10px] font-semibold text-sky-400" id="side-mlss-hieu-khi">3,450 mg/L</span>
+                            </div>
+                            <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
+                                <span class="text-slate-300 font-mono">tn_thieu_khi / tp_thieu_khi</span>
+                                <span class="text-[10px] font-semibold text-emerald-400" id="side-np-thieu-khi">22.8 / 3.6 mg/L</span>
+                            </div>
+                        </div>
+
+                        <!-- Group Disinfection / Out / Incident -->
+                        <div class="border-l-2 border-sky-500 pl-2.5 py-1 space-y-1.5 mt-3">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-sky-500">Đầu Ra &amp; Bể Sự Cố</span>
+                            <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
+                                <span class="text-slate-300 font-mono">ph_su_co</span>
+                                <span class="text-[10px] font-semibold text-emerald-400" id="side-ph-su-co">7.42 pH</span>
+                            </div>
+                            <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
+                                <span class="text-slate-300 font-mono">tn_su_co / tp_su_co</span>
+                                <span class="text-[10px] font-semibold text-emerald-400" id="side-np-su-co">14.2 / 1.8 mg/L</span>
+                            </div>
+                            <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
+                                <span class="text-slate-300 font-mono">flow_rate_out (Xả thải)</span>
+                                <span class="text-[10px] font-semibold text-emerald-400" id="side-flow-out">290.4 m³/h</span>
+                            </div>
+                            <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
+                                <span class="text-slate-300 font-mono">cod_su_co (Đầu ra)</span>
+                                <span class="text-[10px] font-semibold text-emerald-400" id="side-cod-su-co">78.5 mg/L</span>
+                            </div>
+                            <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
+                                <span class="text-slate-300 font-mono">tss_su_co (Bể sự cố)</span>
+                                <span class="text-[10px] font-semibold text-emerald-400" id="side-tss-su-co">42.1 mg/L</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL: DASHBOARD BODY -->
+            <section class="xl:col-span-3 flex flex-col gap-6">
+                <!-- ZONE SELECTOR TABS -->
+                <div class="flex flex-col sm:flex-row gap-2 p-1 bg-slate-900/80 rounded-xl border border-slate-800">
+                    <button onclick="filterZone('all')" id="btn-zone-all" class="flex-1 py-2 px-3 text-xs font-semibold rounded-lg transition-all bg-sky-600 text-white shadow-lg">
+                        <i class="fa-solid fa-border-all mr-1.5"></i>Tất cả phân khu
+                    </button>
+                    <button onclick="filterZone('eq_em')" id="btn-zone-eq_em" class="flex-1 py-2 px-3 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all">
+                        <i class="fa-solid fa-vial mr-1.5 text-amber-500"></i>Bể Điều Hòa
+                    </button>
+                    <button onclick="filterZone('biological')" id="btn-zone-biological" class="flex-1 py-2 px-3 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all">
+                        <i class="fa-solid fa-microscope mr-1.5 text-emerald-500"></i>Cụm Bể Sinh Học
+                    </button>
+                    <button onclick="filterZone('discharge')" id="btn-zone-discharge" class="flex-1 py-2 px-3 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all">
+                        <i class="fa-solid fa-faucet-drip mr-1.5 text-sky-500"></i>Đầu Ra &amp; Bể Sự Cố
+                    </button>
+                </div>
+
+                <!-- CARDS CONTAINER (ALL KPI GROUPS) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="kpi-container">
+                    
+                    <!-- ================= BỂ ĐIỀU HÒA ================= -->
+                    <!-- CARD: pH Bể Điều Hòa -->
+                    <div class="zone-card eq_em bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-amber-500/40 relative">
+                        <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-amber-950 text-amber-400 font-mono font-bold">Bể Điều Hòa</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">pH BỂ ĐIỀU HÒA</span>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-3xl font-extrabold tracking-tight font-mono text-amber-400" id="kpi-ph-dieu-hoa">7.15</span>
+                            <span class="text-xs text-slate-400">pH</span>
+                        </div>
+                        <div class="mt-3 text-[11px] text-slate-400 flex justify-between items-center bg-slate-900/50 p-1.5 rounded">
+                            <span>Ngưỡng tối ưu:</span>
+                            <span class="font-mono text-slate-200">6.5 - 7.5 pH</span>
+                        </div>
+                    </div>
+
+                    <!-- CARD: TSS Bể Điều Hòa -->
+                    <div class="zone-card eq_em bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-amber-500/40 relative">
+                        <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-amber-950 text-amber-400 font-mono font-bold">Bể Điều Hòa</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">TSS BỂ ĐIỀU HÒA (ĐẦU VÀO)</span>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-3xl font-extrabold tracking-tight font-mono text-amber-400" id="kpi-tss-dieu-hoa">185.0</span>
+                            <span class="text-xs text-slate-400">mg/L</span>
+                        </div>
+                        <div class="mt-3 text-[11px] text-slate-400 flex justify-between items-center bg-slate-900/50 p-1.5 rounded">
+                            <span>Tải lượng chất rắn thô:</span>
+                            <span class="font-mono text-slate-200">Đầu vào hệ thống</span>
+                        </div>
+                    </div>
+
+                    <!-- ================= CỤM BỂ SINH HỌC ================= -->
+                    <!-- CARD: DO Bể Thiếu Khí & Hiếu Khí -->
+                    <div class="zone-card biological bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-emerald-500/40 relative">
+                        <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-mono font-bold">Sinh Học</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">OXY HÒA TAN (DO)</span>
+                        <div class="mt-2 flex flex-col gap-1">
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-[11px] text-slate-400">Bể Thiếu Khí (Anoxic):</span>
+                                <div>
+                                    <span class="text-lg font-bold font-mono text-emerald-400" id="kpi-do-thieu-khi">0.24</span>
+                                    <span class="text-[10px] text-slate-500 font-mono">mg/L</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-baseline border-t border-slate-800/60 pt-1">
+                                <span class="text-[11px] text-slate-400">Bể Hiếu Khí (Aerobic):</span>
+                                <div>
+                                    <span class="text-lg font-bold font-mono text-emerald-400" id="kpi-do-hieu-khi">2.15</span>
+                                    <span class="text-[10px] text-slate-500 font-mono">mg/L</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARD: COD Bể Hiếu Khí -->
+                    <div class="zone-card biological bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-emerald-500/40 relative">
+                        <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-mono font-bold">Bể Hiếu Khí</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">COD BỂ HIẾU KHÍ</span>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-3xl font-extrabold tracking-tight font-mono text-emerald-400" id="kpi-cod-hieu-khi">182.4</span>
+                            <span class="text-xs text-slate-400">mg/L</span>
+                        </div>
+                        <div class="mt-3 text-[11px] text-slate-400 flex justify-between items-center bg-slate-900/50 p-1.5 rounded">
+                            <span>Mục tiêu phân hủy:</span>
+                            <span class="font-mono text-slate-200">Giảm tải cacbon hữu cơ</span>
+                        </div>
+                    </div>
+
+                    <!-- CARD: MLSS Bể Hiếu Khí -->
+                    <div class="zone-card biological bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-emerald-500/40 relative">
+                        <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-mono font-bold">Bể Hiếu Khí</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">MLSS BÙN HOẠT TÍNH</span>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-3xl font-extrabold tracking-tight font-mono text-sky-400" id="kpi-mlss-hieu-khi">3,450</span>
+                            <span class="text-xs text-slate-400">mg/L</span>
+                        </div>
+                        <div class="mt-3 text-[11px] text-slate-400 flex justify-between items-center bg-slate-900/50 p-1.5 rounded">
+                            <span>Ngưỡng tối ưu:</span>
+                            <span class="font-mono text-slate-200">3,000 - 4,500 mg/L</span>
+                        </div>
+                    </div>
+
+                    <!-- CARD: Tổng Nitơ & Photpho Bể Thiếu Khí -->
+                    <div class="zone-card biological bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-emerald-500/40 relative">
+                        <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-mono font-bold">Bể Thiếu Khí</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">TỔNG N/P BỂ THIẾU KHÍ</span>
+                        <div class="mt-2 flex flex-col gap-1">
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-[11px] text-slate-400">Tổng Nitơ (TN):</span>
+                                <div>
+                                    <span class="text-lg font-bold font-mono text-emerald-400" id="kpi-tn-thieu-khi">22.8</span>
+                                    <span class="text-[10px] text-slate-500 font-mono">mg/L</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-baseline border-t border-slate-800/60 pt-1">
+                                <span class="text-[11px] text-slate-400">Tổng Photpho (TP):</span>
+                                <div>
+                                    <span class="text-lg font-bold font-mono text-emerald-400" id="kpi-tp-thieu-khi">3.6</span>
+                                    <span class="text-[10px] text-slate-500 font-mono">mg/L</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- ================= ĐẦU RA & BỂ SỰ CỐ ================= -->
+                    <!-- CARD: pH Bể Sự Cố -->
+                    <div class="zone-card discharge bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-sky-500/40 relative">
+                        <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-rose-950 text-rose-400 font-mono font-bold">Bể Sự Cố (Đầu Ra)</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">pH BỂ SỰ CỐ</span>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-3xl font-extrabold tracking-tight font-mono text-emerald-400" id="kpi-ph-su-co">7.42</span>
+                            <span class="text-xs text-slate-400">pH</span>
+                        </div>
+                        <div class="mt-3 text-[11px] text-slate-400 flex justify-between items-center bg-slate-900/50 p-1.5 rounded">
+                            <span>Ngưỡng chuẩn QCVN:</span>
+                            <span class="font-mono text-emerald-400 font-semibold">6.0 - 9.0 pH</span>
+                        </div>
+                    </div>
+
+                    <!-- CARD: Tổng Nitơ & Photpho Bể Sự Cố -->
+                    <div class="zone-card discharge bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-sky-500/40 relative">
+                        <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-rose-950 text-rose-400 font-mono font-bold">Bể Sự Cố (Đầu Ra)</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">TỔNG N/P BỂ SỰ CỐ</span>
+                        <div class="mt-2 flex flex-col gap-1">
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-[11px] text-slate-400">Tổng Nitơ (TN):</span>
+                                <div>
+                                    <span class="text-lg font-bold font-mono text-emerald-400" id="kpi-tn-su-co">14.2</span>
+                                    <span class="text-[10px] text-slate-500 font-mono">mg/L</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-baseline border-t border-slate-800/60 pt-1">
+                                <span class="text-[11px] text-slate-400">Tổng Photpho (TP):</span>
+                                <div>
+                                    <span class="text-lg font-bold font-mono text-emerald-400" id="kpi-tp-su-co">1.8</span>
+                                    <span class="text-[10px] text-slate-500 font-mono">mg/L</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARD: Lưu Lượng Đầu Vào -->
+                    <div class="zone-card discharge bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-sky-500/40 relative">
+                        <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-sky-950 text-sky-400 font-mono font-bold">Lưu lượng</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">LƯU LƯỢNG ĐẦU VÀO</span>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-3xl font-extrabold tracking-tight font-mono text-sky-400" id="kpi-flow-in">345.2</span>
+                            <span class="text-xs text-slate-400">m³/h</span>
+                        </div>
+                        <div class="mt-3 text-[11px] text-slate-400 flex justify-between items-center bg-slate-900/50 p-1.5 rounded">
+                            <span>Vận hành điều tiết trạm:</span>
+                            <span class="font-mono text-emerald-400 font-semibold">Bình thường</span>
+                        </div>
+                    </div>
+
+                    <!-- CARD: Lưu Lượng Đầu Xả -->
+                    <div class="zone-card discharge bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-sky-500/40 relative">
+                        <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-sky-950 text-sky-400 font-mono font-bold">Lưu lượng</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">LƯU LƯỢNG ĐẦU RA</span>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-3xl font-extrabold tracking-tight font-mono text-sky-400" id="kpi-flow-out">290.4</span>
+                            <span class="text-xs text-slate-400">m³/h</span>
+                        </div>
+                        <div class="mt-3 text-[11px] text-slate-400 flex justify-between items-center bg-slate-900/50 p-1.5 rounded">
+                            <span>Hiệu chênh lệch In/Out:</span>
+                            <span class="font-mono text-amber-400 font-semibold" id="kpi-flow-diff">-54.8 m³/h (Chứa bể đệm)</span>
+                        </div>
+                    </div>
+
+                    <!-- CARD: COD Đầu Ra (Bể sự cố) -->
+                    <div class="zone-card discharge bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-sky-500/40 relative" id="card-organic">
+                        <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-amber-950 text-amber-400 font-mono font-bold" id="badge-organic-status">Cảnh báo</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">COD ĐẦU RA (BỂ SỰ CỐ)</span>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-3xl font-extrabold tracking-tight font-mono text-amber-400" id="kpi-cod">78.5</span>
+                            <span class="text-xs text-slate-400">mg/L</span>
+                        </div>
+                        <div class="mt-3 text-[11px] text-slate-400 flex justify-between items-center bg-slate-900/50 p-1.5 rounded">
+                            <span>QCVN 40 Loại B:</span>
+                            <span class="font-mono text-slate-200" id="kpi-cod-target">&lt; 75 mg/L</span>
+                        </div>
+                    </div>
+
+                    <!-- CARD: TSS Bể Sự Cố / Đầu Ra -->
+                    <div class="zone-card discharge bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-sky-500/40 relative">
+                        <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-rose-950 text-rose-400 font-mono font-bold">Bể Sự Cố (Đầu Ra)</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">TSS BỂ SỰ CỐ / ĐẦU RA</span>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-3xl font-extrabold tracking-tight font-mono text-emerald-400" id="kpi-tss-val">42.1</span>
+                            <span class="text-xs text-slate-400">mg/L</span>
+                        </div>
+                        <div class="mt-3 text-[11px] text-slate-400 flex justify-between items-center bg-slate-900/50 p-1.5 rounded">
+                            <span>QCVN 40 Loại B:</span>
+                            <span class="font-mono text-emerald-400 font-semibold">&lt; 50 mg/L (Đạt)</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Row 2: CORRELATION ANALYTICS CENTER -->
+                <div class="bg-[#0f172a] rounded-xl border border-slate-800 p-5 shadow-lg flex flex-col gap-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-4 gap-2">
+                        <div>
+                            <h3 class="text-sm font-extrabold tracking-wider font-mono text-sky-400 uppercase"><i class="fa-solid fa-chart-line mr-2"></i>Trung Tâm Phân Tích &amp; Đối Chiếu Tương Quan Công Nghệ</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Dữ liệu so sánh trực tuyến nâng cao giữa bể điều tiết và bể xả thải</p>
+                        </div>
+                        <span class="text-[10px] font-mono px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 rounded">Thời Gian Thực</span>
+                    </div>
+
+                    <!-- Grid of 4 Correlation Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Chart 1: TSS Correlation -->
+                        <div class="bg-[#090f1e] p-4 rounded-xl border border-slate-800/80 flex flex-col h-[280px]">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-xs font-bold font-mono text-slate-300"><i class="fa-solid fa-filter text-amber-500 mr-1.5"></i>Tương Quan TSS (Bể Điều Hòa vs Bể Sự Cố)</span>
+                                <span class="text-[10px] text-slate-500 font-mono">Đơn vị: mg/L</span>
+                            </div>
+                            <div class="flex-grow relative h-0">
+                                <canvas id="tssCorrelationChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 2: Total Nitrogen & Phosphorus Correlation -->
+                        <div class="bg-[#090f1e] p-4 rounded-xl border border-slate-800/80 flex flex-col h-[280px]">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-xs font-bold font-mono text-slate-300"><i class="fa-solid fa-dna text-emerald-400 mr-1.5"></i>Tương Quan Tổng N/P (Bể Thiếu Khí vs Bể Sự Cố)</span>
+                                <span class="text-[10px] text-slate-500 font-mono">Đơn vị: mg/L</span>
+                            </div>
+                            <div class="flex-grow relative h-0">
+                                <canvas id="npCorrelationChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 3: COD Correlation -->
+                        <div class="bg-[#090f1e] p-4 rounded-xl border border-slate-800/80 flex flex-col h-[280px]">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-xs font-bold font-mono text-slate-300"><i class="fa-solid fa-fire-flame-simple text-rose-400 mr-1.5"></i>Tương Quan COD (Bể Hiếu Khí vs Bể Sự Cố)</span>
+                                <span class="text-[10px] text-slate-500 font-mono">Đơn vị: mg/L</span>
+                            </div>
+                            <div class="flex-grow relative h-0">
+                                <canvas id="codCorrelationChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 4: pH Stability Correlation -->
+                        <div class="bg-[#090f1e] p-4 rounded-xl border border-slate-800/80 flex flex-col h-[280px]">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-xs font-bold font-mono text-slate-300"><i class="fa-solid fa-droplet text-sky-400 mr-1.5"></i>Ổn Định pH (Bể Điều Hòa vs Bể Sự Cố)</span>
+                                <span class="text-[10px] text-slate-500 font-mono">Đơn vị: pH</span>
+                            </div>
+                            <div class="flex-grow relative h-0">
+                                <canvas id="phCorrelationChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Correlation Table Dashboard -->
+                    <div class="bg-[#090f1e] rounded-xl border border-slate-800 p-4 mt-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono block mb-3"><i class="fa-solid fa-table-list text-sky-400 mr-1.5"></i>Bảng Tóm Tắt Hiệu Suất Vận Hành Đối Chiếu</span>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-800 text-slate-400 font-semibold">
+                                        <th class="pb-2">Cặp thông số đối chiếu</th>
+                                        <th class="pb-2">Giá trị Bể Nguồn (Avg)</th>
+                                        <th class="pb-2">Giá trị Bể Đích / Sự Cố (Avg)</th>
+                                        <th class="pb-2 text-center">Hiệu suất xử lý thực tế</th>
+                                        <th class="pb-2 text-right">Trạng thái công nghệ</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800/40 text-slate-300" id="correlation-table-body">
+                                    <tr>
+                                        <td class="py-2.5 font-medium flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span>TSS (Điều Hòa -> Sự Cố)</td>
+                                        <td class="py-2.5 font-mono" id="tbl-val-tss-src">185.0 mg/L</td>
+                                        <td class="py-2.5 font-mono text-emerald-400" id="tbl-val-tss-dest">42.1 mg/L</td>
+                                        <td class="py-2.5 text-center font-bold text-emerald-400 font-mono" id="tbl-eff-tss">77.2%</td>
+                                        <td class="py-2.5 text-right"><span class="px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-400 text-[10px] font-semibold border border-emerald-900/30">Đạt quy chuẩn lắng</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2.5 font-medium flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Tổng Nitơ (Thiếu Khí -> Sự Cố)</td>
+                                        <td class="py-2.5 font-mono" id="tbl-val-tn-src">22.8 mg/L</td>
+                                        <td class="py-2.5 font-mono text-emerald-400" id="tbl-val-tn-dest">14.2 mg/L</td>
+                                        <td class="py-2.5 text-center font-bold text-emerald-400 font-mono" id="tbl-eff-tn">37.7%</td>
+                                        <td class="py-2.5 text-right"><span class="px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-400 text-[10px] font-semibold border border-emerald-900/30">Đạt khử Nitrate</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2.5 font-medium flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Tổng Photpho (Thiếu Khí -> Sự Cố)</td>
+                                        <td class="py-2.5 font-mono" id="tbl-val-tp-src">3.6 mg/L</td>
+                                        <td class="py-2.5 font-mono text-emerald-400" id="tbl-val-tp-dest">1.8 mg/L</td>
+                                        <td class="py-2.5 text-center font-bold text-emerald-400 font-mono" id="tbl-eff-tp">50.0%</td>
+                                        <td class="py-2.5 text-right"><span class="px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-400 text-[10px] font-semibold border border-emerald-900/30">Ổn định sinh học</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2.5 font-medium flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span>COD (Hiếu Khí -> Sự Cố)</td>
+                                        <td class="py-2.5 font-mono" id="tbl-val-cod-src">182.4 mg/L</td>
+                                        <td class="py-2.5 font-mono text-amber-400" id="tbl-val-cod-dest">78.5 mg/L</td>
+                                        <td class="py-2.5 text-center font-bold text-amber-400 font-mono" id="tbl-eff-cod">56.9%</td>
+                                        <td class="py-2.5 text-right"><span class="px-2 py-0.5 rounded bg-amber-950/40 text-amber-400 text-[10px] font-semibold border border-amber-900/30" id="tbl-status-cod">Cần kiểm tra lại vi sinh</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2.5 font-medium flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-sky-500"></span>pH dao động (Điều Hòa -> Sự Cố)</td>
+                                        <td class="py-2.5 font-mono" id="tbl-val-ph-src">7.15 pH</td>
+                                        <td class="py-2.5 font-mono text-emerald-400" id="tbl-val-ph-dest">7.42 pH</td>
+                                        <td class="py-2.5 text-center font-bold text-emerald-400 font-mono" id="tbl-eff-ph">+0.27 Δ</td>
+                                        <td class="py-2.5 text-right"><span class="px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-400 text-[10px] font-semibold border border-emerald-900/30">Trung tính (Rất tốt)</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Alarm Log & Resolution Status -->
+                <div class="bg-[#0f172a] rounded-xl border border-slate-800 p-5 shadow-lg">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono"><i class="fa-solid fa-bell text-rose-500 mr-1.5"></i>Nhật ký cảnh báo vận hành công nghệ</h4>
+                        <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400">Tự động làm mới</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400 font-semibold">
+                                    <th class="pb-2.5">Thời gian</th>
+                                    <th class="pb-2.5">Chỉ số phát hiện</th>
+                                    <th class="pb-2.5">Trạng thái đo</th>
+                                    <th class="pb-2.5">Phân cấp cảnh báo</th>
+                                    <th class="pb-2.5 text-right">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60" id="alarm-tbody">
+                                <tr class="text-slate-300">
+                                    <td class="py-2.5 font-mono" id="alarm-time-1">08/07/2026 10:45</td>
+                                    <td>COD Đầu Ra: <span class="text-rose-400 font-semibold font-mono" id="alarm-val-1">78.5 mg/L</span> (Bể sự cố)</td>
+                                    <td>Vượt quy chuẩn loại B (&gt;75)</td>
+                                    <td><span class="px-2 py-0.5 rounded bg-rose-950 text-rose-400 font-semibold text-[10px] border border-rose-900/50" id="alarm-badge-1">Cảnh báo cao</span></td>
+                                    <td class="py-2.5 text-right"><button onclick="acknowledgeAlarm(this)" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 text-[10px] transition-all">Xác nhận</button></td>
+                                </tr>
+                                <tr class="text-slate-300">
+                                    <td class="py-2.5 font-mono" id="alarm-time-2">08/07/2026 10:12</td>
+                                    <td>DO Hiếu Khí: <span class="text-amber-400 font-semibold font-mono" id="alarm-val-2">1.12 mg/L</span> (Bể Aerobic)</td>
+                                    <td>Thấp hơn ngưỡng thổi khí tối thiểu (&lt;1.5)</td>
+                                    <td><span class="px-2 py-0.5 rounded bg-amber-950 text-amber-400 font-semibold text-[10px] border border-amber-900/50">Cảnh báo vận hành</span></td>
+                                    <td class="py-2.5 text-right"><button onclick="acknowledgeAlarm(this)" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 text-[10px] transition-all">Xác nhận</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="border-t border-slate-800 bg-[#0b0f19] px-6 py-4 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-2">
+            <div>
+                &copy; 2026 TOMONI HUB. Đã đăng ký bản quyền cho Trạm xử lý nước thải KCN ECO-01.
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="#" onclick="window.print(); return false;" class="hover:text-slate-300 transition-all"><i class="fa-solid fa-file-pdf mr-1"></i>Xuất PDF Báo Cáo</a>
+                <span>|</span>
+                <span class="text-[11px] font-mono text-slate-600">Được phát triển dựa trên nền tảng High-Performance HMI Standard</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JAVASCRIPT FOR INTERACTION & REAL-TIME DATA SIMULATION -->
+    <script>
+        // CONFIGURATION BLOCK FOR PRODUCTION INTEGRATION
+        // =========================================================================
+        const CONFIG = {
+            isLiveAPI: false, // CHUYỂN THÀNH 'true' NẾU BẠN MUỐN KẾT NỐI API THỰC TẾ
+            apiEndpoint: "https://api.tomonihub.com/eco01/telemetry", // Đường dẫn API thực tế của bạn
+            refreshInterval: 5000 // Tốc độ cập nhật (5 giây)
+        };
+        // =========================================================================
+
+        let currentTheme = 'navy';
+        let isErrorState = false;
+        let activeZone = 'all';
+
+        // Theme Style Configurations
+        const themes = {
+            navy: {
+                primary: '#0ea5e9', // Sky blue
+                success: '#10b981', // Emerald green
+                warning: '#f59e0b', // Amber yellow
+                danger: '#f43f5e', // Rose red
+                cardBg: '#0f172a',
+                bodyBg: '#0b0f19',
+                border: '#1e293b'
+            },
+            scada: {
+                primary: '#f97316', // Orange SCADA classic
+                success: '#22c55e', // Green neon
+                warning: '#eab308', // Bright yellow
+                danger: '#ef4444', // Red
+                cardBg: '#18181b', // Zinc 900
+                bodyBg: '#09090b', // Zinc 950
+                border: '#27272a'
+            },
+            eco: {
+                primary: '#14b8a6', // Teal
+                success: '#4ade80', // Mint green
+                warning: '#facc15', // Gold
+                danger: '#f43f5e', // Rose red
+                cardBg: '#022c22', // Deep forest dark green
+                bodyBg: '#011510',
+                border: '#044e3e'
+            }
+        };
+
+        // Charts handles
+        let tssChartInstance, npChartInstance, codChartInstance, phChartInstance;
+
+        // Mock Time Labels and Technical Historical Datasets for 4 Correlation Charts
+        const timeLabels = ['06:00', '07:00', '08:00', '09:00', '10:00', '11:00', 'Hiện tại'];
+        
+        // Dynamic Telemetry Data Holders
+        let liveData = {
+            ph_dieu_hoa: 7.15,
+            tss_dieu_hoa: 185.0,
+            do_thieu_khi: 0.24,
+            do_hieu_khi: 2.15,
+            cod_hieu_khi: 182.4,
+            mlss_hieu_khi: 3450,
+            tn_thieu_khi: 22.8,
+            tp_thieu_khi: 3.6,
+            ph_su_co: 7.42,
+            tn_su_co: 14.2,
+            tp_su_co: 1.8,
+            flow_rate_in: 345.2,
+            flow_rate_out: 290.4,
+            cod_su_co: 78.5,
+            tss_su_co: 42.1
+        };
+
+        // Static Historical Datasets
+        const tssDieuHoaData = [190, 182, 195, 205, 180, 188, 185];
+        const tssSuCoData = [45.2, 44.0, 43.1, 41.5, 40.8, 41.9, 42.1];
+
+        const tnThieuKhiData = [24.1, 23.5, 22.8, 24.0, 23.1, 22.5, 22.8];
+        const tnSuCoData = [15.2, 14.8, 14.5, 14.0, 13.9, 14.1, 14.2];
+        const tpThieuKhiData = [3.8, 3.9, 3.5, 3.7, 3.4, 3.5, 3.6];
+        const tpSuCoData = [1.9, 1.8, 1.7, 1.8, 1.6, 1.7, 1.8];
+
+        const codHieuKhiData = [195, 190, 188, 185, 182, 184, 182.4];
+        const codSuCoData = [82.0, 80.5, 79.1, 78.0, 78.5, 77.9, 78.5];
+
+        const phDieuHoaData = [6.8, 6.9, 7.1, 7.2, 7.0, 7.15, 7.15];
+        const phSuCoData = [7.35, 7.40, 7.38, 7.45, 7.42, 7.41, 7.42];
+
+        // Init Charts Function
+        function initCharts(themeName) {
+            const current = themes[themeName];
+
+            // Destroy existing charts to prevent duplication on theme switch
+            if (tssChartInstance) tssChartInstance.destroy();
+            if (npChartInstance) npChartInstance.destroy();
+            if (codChartInstance) codChartInstance.destroy();
+            if (phChartInstance) phChartInstance.destroy();
+
+            // CHART 1: TSS Correlation
+            const ctxTss = document.getElementById('tssCorrelationChart').getContext('2d');
+            tssChartInstance = new Chart(ctxTss, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [
+                        {
+                            label: 'TSS Bể Điều Hòa (Inlet)',
+                            data: tssDieuHoaData,
+                            borderColor: current.warning,
+                            backgroundColor: current.warning + '10',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'TSS Bể Sự Cố (Đầu Ra)',
+                            data: tssSuCoData,
+                            borderColor: current.success,
+                            backgroundColor: current.success + '15',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10 } } } },
+                    scales: {
+                        y: { 
+                            grid: { color: 'rgba(148, 163, 184, 0.08)' },
+                            ticks: { color: '#64748b', font: { family: 'Space Grotesk' } }
+                        },
+                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { family: 'Space Grotesk' } } }
+                    }
+                }
+            });
+
+            // CHART 2: TN & TP Correlation
+            const ctxNp = document.getElementById('npCorrelationChart').getContext('2d');
+            npChartInstance = new Chart(ctxNp, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [
+                        {
+                            label: 'TN Bể Thiếu Khí',
+                            data: tnThieuKhiData,
+                            borderColor: current.primary,
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.25,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'TN Bể Sự Cố',
+                            data: tnSuCoData,
+                            borderColor: current.success,
+                            borderWidth: 2.5,
+                            fill: false,
+                            tension: 0.25,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'TP Bể Thiếu Khí',
+                            data: tpThieuKhiData,
+                            borderColor: current.warning,
+                            borderDash: [3, 3],
+                            borderWidth: 1.5,
+                            fill: false,
+                            tension: 0.2,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'TP Bể Sự Cố',
+                            data: tpSuCoData,
+                            borderColor: '#eab308',
+                            borderDash: [3, 3],
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.2,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 9 } } } },
+                    scales: {
+                        y: { 
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Nitơ (mg/L)', color: current.primary },
+                            grid: { color: 'rgba(148, 163, 184, 0.08)' },
+                            ticks: { color: '#64748b', font: { family: 'Space Grotesk' } }
+                        },
+                        y1: { 
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Photpho (mg/L)', color: current.warning },
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#64748b', font: { family: 'Space Grotesk' } }
+                        },
+                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { family: 'Space Grotesk' } } }
+                    }
+                }
+            });
+
+            // CHART 3: COD Correlation
+            const ctxCod = document.getElementById('codCorrelationChart').getContext('2d');
+            codChartInstance = new Chart(ctxCod, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [
+                        {
+                            label: 'COD Bể Hiếu Khí (Bio-Tank)',
+                            data: codHieuKhiData,
+                            borderColor: current.primary,
+                            backgroundColor: current.primary + '10',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'COD Bể Sự Cố (Đầu Ra)',
+                            data: codSuCoData,
+                            borderColor: current.danger,
+                            backgroundColor: current.danger + '10',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10 } } } },
+                    scales: {
+                        y: { 
+                            grid: { color: 'rgba(148, 163, 184, 0.08)' },
+                            ticks: { color: '#64748b', font: { family: 'Space Grotesk' } }
+                        },
+                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { family: 'Space Grotesk' } } }
+                    }
+                }
+            });
+
+            // CHART 4: pH Stability Correlation
+            const ctxPh = document.getElementById('phCorrelationChart').getContext('2d');
+            phChartInstance = new Chart(ctxPh, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [
+                        {
+                            label: 'pH Bể Điều Hòa',
+                            data: phDieuHoaData,
+                            borderColor: current.warning,
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.2
+                        },
+                        {
+                            label: 'pH Bể Sự Cố (Xả Thải)',
+                            data: phSuCoData,
+                            borderColor: current.success,
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10 } } } },
+                    scales: {
+                        y: { 
+                            min: 5,
+                            max: 10,
+                            grid: { color: 'rgba(148, 163, 184, 0.08)' },
+                            ticks: { color: '#64748b', font: { family: 'Space Grotesk' } }
+                        },
+                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { family: 'Space Grotesk' } } }
+                    }
+                }
+            });
+        }
+
+        // Main function to update UI with latest telemetry data
+        function updateUI() {
+            if (isErrorState) return;
+
+            // 1. Update Left Sensor Map (Sidebar)
+            document.getElementById('side-ph-dieu-hoa').innerText = `${liveData.ph_dieu_hoa.toFixed(2)} pH`;
+            document.getElementById('side-tss-dieu-hoa').innerText = `${liveData.tss_dieu_hoa.toFixed(1)} mg/L`;
+            document.getElementById('side-do-thieu-khi').innerText = `${liveData.do_thieu_khi.toFixed(2)} mg/L`;
+            document.getElementById('side-do-hieu-khi').innerText = `${liveData.do_hieu_khi.toFixed(2)} mg/L`;
+            document.getElementById('side-cod-hieu-khi').innerText = `${liveData.cod_hieu_khi.toFixed(1)} mg/L`;
+            document.getElementById('side-mlss-hieu-khi').innerText = `${Number(liveData.mlss_hieu_khi).toLocaleString()} mg/L`;
+            document.getElementById('side-np-thieu-khi').innerText = `${liveData.tn_thieu_khi.toFixed(1)} / ${liveData.tp_thieu_khi.toFixed(1)} mg/L`;
+            document.getElementById('side-ph-su-co').innerText = `${liveData.ph_su_co.toFixed(2)} pH`;
+            document.getElementById('side-np-su-co').innerText = `${liveData.tn_su_co.toFixed(1)} / ${liveData.tp_su_co.toFixed(1)} mg/L`;
+            document.getElementById('side-flow-out').innerText = `${liveData.flow_rate_out.toFixed(1)} m³/h`;
+            document.getElementById('side-cod-su-co').innerText = `${liveData.cod_su_co.toFixed(1)} mg/L`;
+            document.getElementById('side-tss-su-co').innerText = `${liveData.tss_su_co.toFixed(1)} mg/L`;
+
+            // 2. Update KPI Cards
+            document.getElementById('kpi-ph-dieu-hoa').innerText = liveData.ph_dieu_hoa.toFixed(2);
+            document.getElementById('kpi-tss-dieu-hoa').innerText = liveData.tss_dieu_hoa.toFixed(1);
+            document.getElementById('kpi-do-thieu-khi').innerText = liveData.do_thieu_khi.toFixed(2);
+            document.getElementById('kpi-do-hieu-khi').innerText = liveData.do_hieu_khi.toFixed(2);
+            document.getElementById('kpi-cod-hieu-khi').innerText = liveData.cod_hieu_khi.toFixed(1);
+            document.getElementById('kpi-mlss-hieu-khi').innerText = Number(liveData.mlss_hieu_khi).toLocaleString();
+            document.getElementById('kpi-tn-thieu-khi').innerText = liveData.tn_thieu_khi.toFixed(1);
+            document.getElementById('kpi-tp-thieu-khi').innerText = liveData.tp_thieu_khi.toFixed(1);
+            document.getElementById('kpi-ph-su-co').innerText = liveData.ph_su_co.toFixed(2);
+            document.getElementById('kpi-tn-su-co').innerText = liveData.tn_su_co.toFixed(1);
+            document.getElementById('kpi-tp-su-co').innerText = liveData.tp_su_co.toFixed(1);
+            document.getElementById('kpi-flow-in').innerText = liveData.flow_rate_in.toFixed(1);
+            document.getElementById('kpi-flow-out').innerText = liveData.flow_rate_out.toFixed(1);
+            document.getElementById('kpi-cod').innerText = liveData.cod_su_co.toFixed(1);
+            document.getElementById('kpi-tss-val').innerText = liveData.tss_su_co.toFixed(1);
+
+            // Compute and show flow rate difference
+            const flowDiff = liveData.flow_rate_out - liveData.flow_rate_in;
+            document.getElementById('kpi-flow-diff').innerText = `${flowDiff.toFixed(1)} m³/h (Chứa bể đệm)`;
+
+            // 3. Update Performance Table (Calculations on the fly)
+            document.getElementById('tbl-val-tss-src').innerText = `${liveData.tss_dieu_hoa.toFixed(1)} mg/L`;
+            document.getElementById('tbl-val-tss-dest').innerText = `${liveData.tss_su_co.toFixed(1)} mg/L`;
+            const effTss = ((liveData.tss_dieu_hoa - liveData.tss_su_co) / liveData.tss_dieu_hoa * 100);
+            document.getElementById('tbl-eff-tss').innerText = `${effTss.toFixed(1)}%`;
+
+            document.getElementById('tbl-val-tn-src').innerText = `${liveData.tn_thieu_khi.toFixed(1)} mg/L`;
+            document.getElementById('tbl-val-tn-dest').innerText = `${liveData.tn_su_co.toFixed(1)} mg/L`;
+            const effTn = ((liveData.tn_thieu_khi - liveData.tn_su_co) / liveData.tn_thieu_khi * 100);
+            document.getElementById('tbl-eff-tn').innerText = `${effTn.toFixed(1)}%`;
+
+            document.getElementById('tbl-val-tp-src').innerText = `${liveData.tp_thieu_khi.toFixed(1)} mg/L`;
+            document.getElementById('tbl-val-tp-dest').innerText = `${liveData.tp_su_co.toFixed(1)} mg/L`;
+            const effTp = ((liveData.tp_thieu_khi - liveData.tp_su_co) / liveData.tp_thieu_khi * 100);
+            document.getElementById('tbl-eff-tp').innerText = `${effTp.toFixed(1)}%`;
+
+            document.getElementById('tbl-val-cod-src').innerText = `${liveData.cod_hieu_khi.toFixed(1)} mg/L`;
+            document.getElementById('tbl-val-cod-dest').innerText = `${liveData.cod_su_co.toFixed(1)} mg/L`;
+            const effCod = ((liveData.cod_hieu_khi - liveData.cod_su_co) / liveData.cod_hieu_khi * 100);
+            document.getElementById('tbl-eff-cod').innerText = `${effCod.toFixed(1)}%`;
+
+            document.getElementById('tbl-val-ph-src').innerText = `${liveData.ph_dieu_hoa.toFixed(2)} pH`;
+            document.getElementById('tbl-val-ph-dest').innerText = `${liveData.ph_su_co.toFixed(2)} pH`;
+            const deltaPh = liveData.ph_su_co - liveData.ph_dieu_hoa;
+            document.getElementById('tbl-eff-ph').innerText = `${deltaPh >= 0 ? '+' : ''}${deltaPh.toFixed(2)} Δ`;
+
+            // Dynamic Styling based on alert limit (>75 mg/L is alert for COD)
+            const organicCard = document.getElementById('card-organic');
+            const badgeOrganic = document.getElementById('badge-organic-status');
+            const codTarget = document.getElementById('kpi-cod-target');
+            
+            if (liveData.cod_su_co > 75.0) {
+                organicCard.className = "zone-card discharge bg-[#1c131a] rounded-xl border border-rose-800 p-4 shadow-lg transition-all duration-300 hover:border-rose-500 relative";
+                badgeOrganic.className = "text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-rose-950 text-rose-400 font-mono font-bold animate-pulse";
+                badgeOrganic.innerText = "CẢNH BÁO";
+                document.getElementById('kpi-cod').className = "text-3xl font-extrabold tracking-tight font-mono text-rose-500";
+                codTarget.className = "font-mono text-rose-400 font-semibold";
+                document.getElementById('tbl-status-cod').className = "px-2 py-0.5 rounded bg-rose-950/40 text-rose-400 text-[10px] font-semibold border border-rose-900/30";
+                document.getElementById('tbl-status-cod').innerText = "Vượt tiêu chuẩn xả";
+            } else {
+                organicCard.className = "zone-card discharge bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-sky-500/40 relative";
+                badgeOrganic.className = "text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-mono font-bold";
+                badgeOrganic.innerText = "AN TOÀN";
+                document.getElementById('kpi-cod').className = "text-3xl font-extrabold tracking-tight font-mono text-emerald-400";
+                codTarget.className = "font-mono text-emerald-400 font-semibold";
+                document.getElementById('tbl-status-cod').className = "px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-400 text-[10px] font-semibold border border-emerald-900/30";
+                document.getElementById('tbl-status-cod').innerText = "Đạt tiêu chuẩn xả";
+            }
+
+            // 4. Push live point into charts timeline
+            timeLabels.shift();
+            timeLabels.push(new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', second:'2-digit'}));
+
+            // Update TSS Chart
+            tssDieuHoaData.shift(); tssDieuHoaData.push(liveData.tss_dieu_hoa);
+            tssSuCoData.shift(); tssSuCoData.push(liveData.tss_su_co);
+            tssChartInstance.update();
+
+            // Update N/P Chart
+            tnThieuKhiData.shift(); tnThieuKhiData.push(liveData.tn_thieu_khi);
+            tnSuCoData.shift(); tnSuCoData.push(liveData.tn_su_co);
+            tpThieuKhiData.shift(); tpThieuKhiData.push(liveData.tp_thieu_khi);
+            tpSuCoData.shift(); tpSuCoData.push(liveData.tp_su_co);
+            npChartInstance.update();
+
+            // Update COD Chart
+            codHieuKhiData.shift(); codHieuKhiData.push(liveData.cod_hieu_khi);
+            codSuCoData.shift(); codSuCoData.push(liveData.cod_su_co);
+            codChartInstance.update();
+
+            // Update pH Chart
+            phDieuHoaData.shift(); phDieuHoaData.push(liveData.ph_dieu_hoa);
+            phSuCoData.shift(); phSuCoData.push(liveData.ph_su_co);
+            phChartInstance.update();
+
+            // Update Live Alert Clock
+            const now = new Date();
+            const timeStr = now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('alarm-time-1').innerText = timeStr;
+            document.getElementById('alarm-val-1').innerText = `${liveData.cod_su_co.toFixed(1)} mg/L`;
+            
+            if (liveData.cod_su_co > 75.0) {
+                document.getElementById('alarm-badge-1').className = "px-2 py-0.5 rounded bg-rose-950 text-rose-400 font-semibold text-[10px] border border-rose-900/50 animate-pulse";
+                document.getElementById('alarm-badge-1').innerText = "Cảnh báo cao";
+            } else {
+                document.getElementById('alarm-badge-1').className = "px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-semibold text-[10px] border border-emerald-900/50";
+                document.getElementById('alarm-badge-1').innerText = "Bình thường";
+            }
+        }
+
+        // Fetches telemetry data from backend or local random walk simulator
+        async function fetchTelemetryData() {
+            if (CONFIG.isLiveAPI) {
+                try {
+                    document.getElementById('txt-connection-mode').innerText = "API Đang Kết Nối...";
+                    const response = await fetch(CONFIG.apiEndpoint);
+                    if (!response.ok) throw new Error('API Error');
+                    const json = await response.json();
+                    
+                    // Map your real database JSON structure to the app variables here:
+                    liveData = {
+                        ph_dieu_hoa: Number(json.ph_dieu_hoa),
+                        tss_dieu_hoa: Number(json.tss_dieu_hoa),
+                        do_thieu_khi: Number(json.do_thieu_khi),
+                        do_hieu_khi: Number(json.do_hieu_khi),
+                        cod_hieu_khi: Number(json.cod_hieu_khi),
+                        mlss_hieu_khi: Number(json.mlss_hieu_khi),
+                        tn_thieu_khi: Number(json.tn_thieu_khi),
+                        tp_thieu_khi: Number(json.tp_thieu_khi),
+                        ph_su_co: Number(json.ph_su_co),
+                        tn_su_co: Number(json.tn_su_co),
+                        tp_su_co: Number(json.tp_su_co),
+                        flow_rate_in: Number(json.flow_rate_in),
+                        flow_rate_out: Number(json.flow_rate_out),
+                        cod_su_co: Number(json.cod_su_co),
+                        tss_su_co: Number(json.tss_su_co)
+                    };
+                    document.getElementById('txt-connection-mode').innerText = "LIVE (Kết nối API)";
+                } catch (e) {
+                    console.error("API Fetch Error. Falling back to Live Simulator", e);
+                    document.getElementById('txt-connection-mode').innerText = "LỖI API -> Đang Mô Phỏng";
+                    runSimulator();
+                }
+            } else {
+                runSimulator();
+            }
+
+            updateUI();
+        }
+
+        // Real-time sensor simulation with random walk calculations
+        function runSimulator() {
+            // Slight natural fluctuations mimicking physical water chemistry
+            liveData.ph_dieu_hoa += (Math.random() - 0.5) * 0.05;
+            liveData.ph_dieu_hoa = Math.max(6.5, Math.min(7.8, liveData.ph_dieu_hoa));
+
+            liveData.tss_dieu_hoa += (Math.random() - 0.5) * 4;
+            liveData.tss_dieu_hoa = Math.max(160, Math.min(210, liveData.tss_dieu_hoa));
+
+            liveData.do_thieu_khi += (Math.random() - 0.5) * 0.02;
+            liveData.do_thieu_khi = Math.max(0.15, Math.min(0.35, liveData.do_thieu_khi));
+
+            liveData.do_hieu_khi += (Math.random() - 0.5) * 0.1;
+            liveData.do_hieu_khi = Math.max(1.8, Math.min(2.4, liveData.do_hieu_khi));
+
+            liveData.cod_hieu_khi += (Math.random() - 0.5) * 3;
+            liveData.cod_hieu_khi = Math.max(170, Math.min(195, liveData.cod_hieu_khi));
+
+            liveData.mlss_hieu_khi += Math.floor((Math.random() - 0.5) * 20);
+            liveData.mlss_hieu_khi = Math.max(3200, Math.min(3600, liveData.mlss_hieu_khi));
+
+            liveData.tn_thieu_khi += (Math.random() - 0.5) * 0.5;
+            liveData.tp_thieu_khi += (Math.random() - 0.5) * 0.1;
+
+            liveData.ph_su_co += (Math.random() - 0.5) * 0.03;
+            liveData.ph_su_co = Math.max(7.2, Math.min(7.6, liveData.ph_su_co));
+
+            liveData.tn_su_co += (Math.random() - 0.5) * 0.2;
+            liveData.tp_su_co += (Math.random() - 0.5) * 0.05;
+
+            liveData.flow_rate_in += (Math.random() - 0.5) * 5;
+            liveData.flow_rate_out += (Math.random() - 0.5) * 4;
+
+            // Slowly drift COD output around the warning limit of 75 mg/L to demonstrate alert states
+            liveData.cod_su_co += (Math.random() - 0.45) * 1.5; 
+            liveData.cod_su_co = Math.max(70, Math.min(83, liveData.cod_su_co));
+
+            liveData.tss_su_co += (Math.random() - 0.5) * 0.8;
+            liveData.tss_su_co = Math.max(38, Math.min(46, liveData.tss_su_co));
+        }
+
+        // Filtering by Operational Zones
+        function filterZone(zoneId) {
+            activeZone = zoneId;
+            const cards = document.querySelectorAll('.zone-card');
+            
+            const zoneBtnMap = {
+                all: 'btn-zone-all',
+                eq_em: 'btn-zone-eq_em',
+                biological: 'btn-zone-biological',
+                discharge: 'btn-zone-discharge'
+            };
+
+            const labelMap = {
+                all: 'Tất cả các bể',
+                eq_em: 'Bể Điều Hòa (Đầu vào)',
+                biological: 'Cụm Bể Sinh Học',
+                discharge: 'Đầu Ra & Bể Sự Cố'
+            };
+
+            document.getElementById('txt-active-zone-label').innerText = labelMap[zoneId];
+
+            Object.keys(zoneBtnMap).forEach(key => {
+                const btn = document.getElementById(zoneBtnMap[key]);
+                if (key === zoneId) {
+                    btn.className = "flex-1 py-2 px-3 text-xs font-semibold rounded-lg transition-all bg-sky-600 text-white shadow-lg";
+                } else {
+                    btn.className = "flex-1 py-2 px-3 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all";
+                }
+            });
+
+            // Show/Hide cards dynamically
+            cards.forEach(card => {
+                if (zoneId === 'all' || card.classList.contains(zoneId)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Theme switching logic
+        function switchTheme(themeName) {
+            currentTheme = themeName;
+            const current = themes[themeName];
+
+            // Update Body Background
+            document.body.style.backgroundColor = current.bodyBg;
+
+            // Update styling of Header & all cards
+            document.querySelectorAll('#kpi-container > div, section > div, main section > div').forEach(el => {
+                el.style.backgroundColor = current.cardBg;
+                el.style.borderColor = current.border;
+            });
+            document.querySelector('header').style.backgroundColor = current.cardBg;
+            document.querySelector('header').style.borderColor = current.border;
+
+            // Highlight chosen theme button
+            ['scada', 'navy', 'eco'].forEach(t => {
+                const btn = document.getElementById(`btn-theme-${t}`);
+                if (t === themeName) {
+                    btn.className = "px-2.5 py-1 text-xs font-semibold rounded border border-transparent bg-sky-600 text-white shadow-lg";
+                } else {
+                    btn.className = "px-2.5 py-1 text-xs font-medium rounded border border-transparent hover:border-slate-700 bg-slate-800 text-slate-300";
+                }
+            });
+
+            // Redraw charts with new colors
+            initCharts(themeName);
+        }
+
+        // Error State Simulator Toggle (Mất kết nối SCADA)
+        function toggleErrorState() {
+            isErrorState = !isErrorState;
+
+            const btn = document.getElementById('btn-error-toggle');
+            const systemPulsePing = document.getElementById('status-pulse-ping');
+            const systemPulseDot = document.getElementById('status-pulse-dot');
+            const txtSysStatus = document.getElementById('txt-sys-status');
+            const txtLastUpdate = document.getElementById('txt-last-update');
+
+            if (isErrorState) {
+                // Change UI status bar to error state
+                btn.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>Quay về trạng thái Bình thường</span>`;
+                btn.className = "flex items-center gap-2 px-3 py-1 bg-emerald-950/40 text-emerald-400 hover:bg-emerald-900/50 border border-emerald-800/60 rounded-lg text-xs font-semibold transition-all";
+                
+                systemPulsePing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75";
+                systemPulseDot.className = "relative inline-flex rounded-full h-3 w-3 bg-rose-500";
+                txtSysStatus.innerText = "LỖI TRUYỀN DẪN (Mất kết nối SCADA)";
+                txtSysStatus.className = "text-lg font-bold text-rose-400";
+                txtLastUpdate.innerText = "Mất tín hiệu lúc: " + new Date().toLocaleTimeString('vi-VN');
+
+                // Set all KPIs to NO DATA placeholder
+                const errorMarkup = `<span class="text-rose-400 text-2xl font-bold italic"><i class="fa-solid fa-triangle-exclamation mr-1"></i>No Data</span>`;
+                document.getElementById('kpi-ph-dieu-hoa').innerHTML = errorMarkup;
+                document.getElementById('kpi-tss-dieu-hoa').innerHTML = errorMarkup;
+                document.getElementById('kpi-ph-su-co').innerHTML = errorMarkup;
+                document.getElementById('kpi-tn-su-co').innerHTML = "Mất tín hiệu";
+                document.getElementById('kpi-tp-su-co').innerHTML = "Mất tín hiệu";
+                document.getElementById('kpi-do-thieu-khi').innerHTML = "Mất kết nối";
+                document.getElementById('kpi-do-hieu-khi').innerHTML = "Mất kết nối";
+                document.getElementById('kpi-cod-hieu-khi').innerHTML = errorMarkup;
+                document.getElementById('kpi-mlss-hieu-khi').innerHTML = errorMarkup;
+                document.getElementById('kpi-tn-thieu-khi').innerHTML = "Mất kết nối";
+                document.getElementById('kpi-tp-thieu-khi').innerHTML = "Mất kết nối";
+                document.getElementById('kpi-flow-in').innerHTML = errorMarkup;
+                document.getElementById('kpi-flow-out').innerHTML = errorMarkup;
+                document.getElementById('kpi-cod').innerHTML = errorMarkup;
+                document.getElementById('kpi-tss-val').innerHTML = errorMarkup;
+
+                // Set table values to empty
+                document.getElementById('tbl-val-tss-src').innerText = "N/A";
+                document.getElementById('tbl-val-tss-dest').innerText = "N/A";
+                document.getElementById('tbl-val-tn-src').innerText = "N/A";
+                document.getElementById('tbl-val-tn-dest').innerText = "N/A";
+                document.getElementById('tbl-val-tp-src').innerText = "N/A";
+                document.getElementById('tbl-val-tp-dest').innerText = "N/A";
+                document.getElementById('tbl-val-cod-src').innerText = "N/A";
+                document.getElementById('tbl-val-cod-dest').innerText = "N/A";
+                document.getElementById('tbl-val-ph-src').innerText = "N/A";
+                document.getElementById('tbl-val-ph-dest').innerText = "N/A";
+                document.getElementById('tbl-eff-tss').innerText = "--";
+                document.getElementById('tbl-eff-tn').innerText = "--";
+                document.getElementById('tbl-eff-tp').innerText = "--";
+                document.getElementById('tbl-eff-cod').innerText = "--";
+                document.getElementById('tbl-eff-ph').innerText = "--";
+
+                // Update charts to empty state
+                tssChartInstance.data.datasets.forEach(d => d.data = [null, null, null, null, null, null, null]);
+                npChartInstance.data.datasets.forEach(d => d.data = [null, null, null, null, null, null, null]);
+                codChartInstance.data.datasets.forEach(d => d.data = [null, null, null, null, null, null, null]);
+                phChartInstance.data.datasets.forEach(d => d.data = [null, null, null, null, null, null, null]);
+                
+                tssChartInstance.update();
+                npChartInstance.update();
+                codChartInstance.update();
+                phChartInstance.update();
+            } else {
+                // Return to normal
+                btn.innerHTML = `<i class="fa-solid fa-triangle-exclamation animate-pulse"></i> <span>Giả lập lỗi "No Data"</span>`;
+                btn.className = "flex items-center gap-2 px-3 py-1 bg-rose-950/40 text-rose-400 hover:bg-rose-900/50 border border-rose-800/60 rounded-lg text-xs font-semibold transition-all";
+                
+                systemPulsePing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
+                systemPulseDot.className = "relative inline-flex rounded-full h-3 w-3 bg-emerald-500";
+                txtSysStatus.innerText = "ONLINE (Bình thường)";
+                txtSysStatus.className = "text-lg font-bold text-slate-100";
+                txtLastUpdate.innerText = "Vừa xong";
+
+                // Reload original datasets to charts
+                tssChartInstance.data.datasets[0].data = tssDieuHoaData;
+                tssChartInstance.data.datasets[1].data = tssSuCoData;
+                
+                npChartInstance.data.datasets[0].data = tnThieuKhiData;
+                npChartInstance.data.datasets[1].data = tnSuCoData;
+                npChartInstance.data.datasets[2].data = tpThieuKhiData;
+                npChartInstance.data.datasets[3].data = tpSuCoData;
+
+                codChartInstance.data.datasets[0].data = codHieuKhiData;
+                codChartInstance.data.datasets[1].data = codSuCoData;
+
+                phChartInstance.data.datasets[0].data = phDieuHoaData;
+                phChartInstance.data.datasets[1].data = phSuCoData;
+
+                tssChartInstance.update();
+                npChartInstance.update();
+                codChartInstance.update();
+                phChartInstance.update();
+            }
+        }
+
+        // Action button interaction
+        function acknowledgeAlarm(btn) {
+            btn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i>Đã Xử Lý`;
+            btn.className = "px-2 py-0.5 bg-emerald-950/40 text-emerald-400 border border-emerald-800/50 rounded text-[10px]";
+            btn.disabled = true;
+        }
+
+        // On document ready
+        window.addEventListener('load', () => {
+            switchTheme('navy'); // Default theme
+            filterZone('all');
+
+            // Start Live Data Query Loop
+            fetchTelemetryData();
+            setInterval(fetchTelemetryData, CONFIG.refreshInterval);
+        });
+    </script>
+</body>
+</html>
