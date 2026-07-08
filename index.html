@@ -54,7 +54,7 @@
         <header class="border-b border-slate-800 bg-[#0f172a] px-6 py-4 flex flex-col xl:flex-row justify-between items-center gap-4 sticky top-0 z-50">
             <div class="flex items-center gap-3">
                 <div class="bg-slate-900 p-0.5 rounded-lg border border-slate-800 shadow-lg shadow-sky-500/5 flex items-center justify-center overflow-hidden h-12 w-16">
-                    <img src="logo tomonihub 2026.png" alt="TOMONI HUB Logo" class="h-full w-full object-cover rounded" onerror="this.src='https://placehold.co/100x100/0f172a/38bdf8?text=TH'">
+                    <img src="logo.png" alt="TOMONI HUB Logo" class="h-full w-full object-cover rounded" onerror="this.src='https://placehold.co/100x100/0f172a/38bdf8?text=TH'">
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
@@ -67,7 +67,6 @@
 
             <!-- INTERACTIVE CONTROL PANEL -->
             <div class="flex flex-wrap items-center gap-3 bg-slate-900/90 p-2 rounded-xl border border-slate-800/80">
-                <!-- Live connection status badge -->
                 <div class="flex items-center gap-2 px-3 py-1 bg-emerald-950/40 text-emerald-400 border border-emerald-900/40 rounded-lg text-xs font-semibold">
                     <span class="relative flex h-2 w-2">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -187,15 +186,15 @@
                                 <span class="text-[10px] font-semibold text-emerald-400" id="side-np-su-co">14.2 / 1.8 mg/L</span>
                             </div>
                             <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
-                                <span class="text-slate-300 font-mono">flow_rate_out (Xả thải)</span>
+                                <span class="text-slate-300 font-mono">flow_rate_out</span>
                                 <span class="text-[10px] font-semibold text-emerald-400" id="side-flow-out">290.4 m³/h</span>
                             </div>
                             <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
-                                <span class="text-slate-300 font-mono">cod_su_co (Đầu ra)</span>
+                                <span class="text-slate-300 font-mono">cod_su_co</span>
                                 <span class="text-[10px] font-semibold text-emerald-400" id="side-cod-su-co">78.5 mg/L</span>
                             </div>
                             <div class="flex justify-between text-xs p-1.5 rounded bg-slate-900/50">
-                                <span class="text-slate-300 font-mono">tss_su_co (Bể sự cố)</span>
+                                <span class="text-slate-300 font-mono">tss_su_co</span>
                                 <span class="text-[10px] font-semibold text-emerald-400" id="side-tss-su-co">42.1 mg/L</span>
                             </div>
                         </div>
@@ -326,7 +325,6 @@
                         </div>
                     </div>
 
-
                     <!-- ================= ĐẦU RA & BỂ SỰ CỐ ================= -->
                     <!-- CARD: pH Bể Sự Cố -->
                     <div class="zone-card discharge bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-sky-500/40 relative">
@@ -378,24 +376,24 @@
                         </div>
                     </div>
 
-                    <!-- CARD: Lưu Lượng Đầu Xả -->
+                    <!-- CARD: Lưu Lượng Đầu Ra -->
                     <div class="zone-card discharge bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-sky-500/40 relative">
                         <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-sky-950 text-sky-400 font-mono font-bold">Lưu lượng</span>
-                        <span class="text-xs font-semibold text-slate-400 font-mono">LƯU LƯỢNG ĐẦU RA</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">LƯU LƯỢNG ĐẦU RA (XẢ THẢI)</span>
                         <div class="mt-2 flex items-baseline gap-2">
                             <span class="text-3xl font-extrabold tracking-tight font-mono text-sky-400" id="kpi-flow-out">290.4</span>
                             <span class="text-xs text-slate-400">m³/h</span>
                         </div>
                         <div class="mt-3 text-[11px] text-slate-400 flex justify-between items-center bg-slate-900/50 p-1.5 rounded">
                             <span>Hiệu chênh lệch In/Out:</span>
-                            <span class="font-mono text-amber-400 font-semibold" id="kpi-flow-diff">-54.8 m³/h (Chứa bể đệm)</span>
+                            <span class="font-mono text-amber-400 font-semibold" id="kpi-flow-diff">-54.8 m³/h</span>
                         </div>
                     </div>
 
                     <!-- CARD: COD Đầu Ra (Bể sự cố) -->
                     <div class="zone-card discharge bg-[#0f172a] rounded-xl border border-slate-800 p-4 shadow-lg transition-all duration-300 hover:border-sky-500/40 relative" id="card-organic">
                         <span class="text-[10px] absolute top-2 right-2 px-1.5 py-0.5 rounded bg-amber-950 text-amber-400 font-mono font-bold" id="badge-organic-status">Cảnh báo</span>
-                        <span class="text-xs font-semibold text-slate-400 font-mono">COD ĐẦU RA (BỂ SỰ CỐ)</span>
+                        <span class="text-xs font-semibold text-slate-400 font-mono">COD BỂ SỰ CỐ / ĐẦU RA</span>
                         <div class="mt-2 flex items-baseline gap-2">
                             <span class="text-3xl font-extrabold tracking-tight font-mono text-amber-400" id="kpi-cod">78.5</span>
                             <span class="text-xs text-slate-400">mg/L</span>
@@ -589,13 +587,11 @@
     <!-- JAVASCRIPT FOR INTERACTION & REAL-TIME DATA SIMULATION -->
     <script>
         // CONFIGURATION BLOCK FOR PRODUCTION INTEGRATION
-        // =========================================================================
         const CONFIG = {
-            isLiveAPI: false, // CHUYỂN THÀNH 'true' NẾU BẠN MUỐN KẾT NỐI API THỰC TẾ
-            apiEndpoint: "https://api.tomonihub.com/eco01/telemetry", // Đường dẫn API thực tế của bạn
-            refreshInterval: 5000 // Tốc độ cập nhật (5 giây)
+            isLiveAPI: false, // CHUYỂN THÀNH 'true' NẾU KẾT NỐI API THỰC TẾ CỦA BẠN
+            apiEndpoint: "https://api.tomonihub.com/eco01/telemetry", 
+            refreshInterval: 5000 
         };
-        // =========================================================================
 
         let currentTheme = 'navy';
         let isErrorState = false;
@@ -604,29 +600,29 @@
         // Theme Style Configurations
         const themes = {
             navy: {
-                primary: '#0ea5e9', // Sky blue
-                success: '#10b981', // Emerald green
-                warning: '#f59e0b', // Amber yellow
-                danger: '#f43f5e', // Rose red
+                primary: '#0ea5e9', 
+                success: '#10b981', 
+                warning: '#f59e0b', 
+                danger: '#f43f5e', 
                 cardBg: '#0f172a',
                 bodyBg: '#0b0f19',
                 border: '#1e293b'
             },
             scada: {
-                primary: '#f97316', // Orange SCADA classic
-                success: '#22c55e', // Green neon
-                warning: '#eab308', // Bright yellow
-                danger: '#ef4444', // Red
-                cardBg: '#18181b', // Zinc 900
-                bodyBg: '#09090b', // Zinc 950
+                primary: '#f97316', 
+                success: '#22c55e', 
+                warning: '#eab308', 
+                danger: '#ef4444', 
+                cardBg: '#18181b', 
+                bodyBg: '#09090b', 
                 border: '#27272a'
             },
             eco: {
-                primary: '#14b8a6', // Teal
-                success: '#4ade80', // Mint green
-                warning: '#facc15', // Gold
-                danger: '#f43f5e', // Rose red
-                cardBg: '#022c22', // Deep forest dark green
+                primary: '#14b8a6', 
+                success: '#4ade80', 
+                warning: '#facc15', 
+                danger: '#f43f5e', 
+                cardBg: '#022c22', 
                 bodyBg: '#011510',
                 border: '#044e3e'
             }
@@ -676,7 +672,6 @@
         function initCharts(themeName) {
             const current = themes[themeName];
 
-            // Destroy existing charts to prevent duplication on theme switch
             if (tssChartInstance) tssChartInstance.destroy();
             if (npChartInstance) npChartInstance.destroy();
             if (codChartInstance) codChartInstance.destroy();
@@ -883,7 +878,7 @@
         function updateUI() {
             if (isErrorState) return;
 
-            // 1. Update Left Sensor Map (Sidebar)
+            // 1. Update Left Sensor Map
             document.getElementById('side-ph-dieu-hoa').innerText = `${liveData.ph_dieu_hoa.toFixed(2)} pH`;
             document.getElementById('side-tss-dieu-hoa').innerText = `${liveData.tss_dieu_hoa.toFixed(1)} mg/L`;
             document.getElementById('side-do-thieu-khi').innerText = `${liveData.do_thieu_khi.toFixed(2)} mg/L`;
@@ -914,11 +909,11 @@
             document.getElementById('kpi-cod').innerText = liveData.cod_su_co.toFixed(1);
             document.getElementById('kpi-tss-val').innerText = liveData.tss_su_co.toFixed(1);
 
-            // Compute and show flow rate difference
+            // Compute flow diff
             const flowDiff = liveData.flow_rate_out - liveData.flow_rate_in;
-            document.getElementById('kpi-flow-diff').innerText = `${flowDiff.toFixed(1)} m³/h (Chứa bể đệm)`;
+            document.getElementById('kpi-flow-diff').innerText = `${flowDiff.toFixed(1)} m³/h (Chênh lệch)`;
 
-            // 3. Update Performance Table (Calculations on the fly)
+            // 3. Update Performance Table
             document.getElementById('tbl-val-tss-src').innerText = `${liveData.tss_dieu_hoa.toFixed(1)} mg/L`;
             document.getElementById('tbl-val-tss-dest').innerText = `${liveData.tss_su_co.toFixed(1)} mg/L`;
             const effTss = ((liveData.tss_dieu_hoa - liveData.tss_su_co) / liveData.tss_dieu_hoa * 100);
@@ -944,7 +939,7 @@
             const deltaPh = liveData.ph_su_co - liveData.ph_dieu_hoa;
             document.getElementById('tbl-eff-ph').innerText = `${deltaPh >= 0 ? '+' : ''}${deltaPh.toFixed(2)} Δ`;
 
-            // Dynamic Styling based on alert limit (>75 mg/L is alert for COD)
+            // Dynamic Styling based on alert limit
             const organicCard = document.getElementById('card-organic');
             const badgeOrganic = document.getElementById('badge-organic-status');
             const codTarget = document.getElementById('kpi-cod-target');
@@ -967,7 +962,7 @@
                 document.getElementById('tbl-status-cod').innerText = "Đạt tiêu chuẩn xả";
             }
 
-            // 4. Push live point into charts timeline
+            // Push live point into charts timeline
             timeLabels.shift();
             timeLabels.push(new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', second:'2-digit'}));
 
@@ -1003,7 +998,7 @@
                 document.getElementById('alarm-badge-1').className = "px-2 py-0.5 rounded bg-rose-950 text-rose-400 font-semibold text-[10px] border border-rose-900/50 animate-pulse";
                 document.getElementById('alarm-badge-1').innerText = "Cảnh báo cao";
             } else {
-                document.getElementById('alarm-badge-1').className = "px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-semibold text-[10px] border border-emerald-900/50";
+                document.getElementById('alarm-badge-1').className = "px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-semibold text-[10px] border border-emerald-800/50";
                 document.getElementById('alarm-badge-1').innerText = "Bình thường";
             }
         }
@@ -1017,7 +1012,6 @@
                     if (!response.ok) throw new Error('API Error');
                     const json = await response.json();
                     
-                    // Map your real database JSON structure to the app variables here:
                     liveData = {
                         ph_dieu_hoa: Number(json.ph_dieu_hoa),
                         tss_dieu_hoa: Number(json.tss_dieu_hoa),
@@ -1050,7 +1044,6 @@
 
         // Real-time sensor simulation with random walk calculations
         function runSimulator() {
-            // Slight natural fluctuations mimicking physical water chemistry
             liveData.ph_dieu_hoa += (Math.random() - 0.5) * 0.05;
             liveData.ph_dieu_hoa = Math.max(6.5, Math.min(7.8, liveData.ph_dieu_hoa));
 
@@ -1081,7 +1074,7 @@
             liveData.flow_rate_in += (Math.random() - 0.5) * 5;
             liveData.flow_rate_out += (Math.random() - 0.5) * 4;
 
-            // Slowly drift COD output around the warning limit of 75 mg/L to demonstrate alert states
+            // Slowly drift COD output around the warning limit of 75 mg/L
             liveData.cod_su_co += (Math.random() - 0.45) * 1.5; 
             liveData.cod_su_co = Math.max(70, Math.min(83, liveData.cod_su_co));
 
@@ -1119,7 +1112,6 @@
                 }
             });
 
-            // Show/Hide cards dynamically
             cards.forEach(card => {
                 if (zoneId === 'all' || card.classList.contains(zoneId)) {
                     card.style.display = 'block';
@@ -1134,10 +1126,8 @@
             currentTheme = themeName;
             const current = themes[themeName];
 
-            // Update Body Background
             document.body.style.backgroundColor = current.bodyBg;
 
-            // Update styling of Header & all cards
             document.querySelectorAll('#kpi-container > div, section > div, main section > div').forEach(el => {
                 el.style.backgroundColor = current.cardBg;
                 el.style.borderColor = current.border;
@@ -1145,7 +1135,6 @@
             document.querySelector('header').style.backgroundColor = current.cardBg;
             document.querySelector('header').style.borderColor = current.border;
 
-            // Highlight chosen theme button
             ['scada', 'navy', 'eco'].forEach(t => {
                 const btn = document.getElementById(`btn-theme-${t}`);
                 if (t === themeName) {
@@ -1155,11 +1144,10 @@
                 }
             });
 
-            // Redraw charts with new colors
             initCharts(themeName);
         }
 
-        // Error State Simulator Toggle (Mất kết nối SCADA)
+        // Error State Simulator Toggle
         function toggleErrorState() {
             isErrorState = !isErrorState;
 
@@ -1170,7 +1158,6 @@
             const txtLastUpdate = document.getElementById('txt-last-update');
 
             if (isErrorState) {
-                // Change UI status bar to error state
                 btn.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>Quay về trạng thái Bình thường</span>`;
                 btn.className = "flex items-center gap-2 px-3 py-1 bg-emerald-950/40 text-emerald-400 hover:bg-emerald-900/50 border border-emerald-800/60 rounded-lg text-xs font-semibold transition-all";
                 
@@ -1180,7 +1167,6 @@
                 txtSysStatus.className = "text-lg font-bold text-rose-400";
                 txtLastUpdate.innerText = "Mất tín hiệu lúc: " + new Date().toLocaleTimeString('vi-VN');
 
-                // Set all KPIs to NO DATA placeholder
                 const errorMarkup = `<span class="text-rose-400 text-2xl font-bold italic"><i class="fa-solid fa-triangle-exclamation mr-1"></i>No Data</span>`;
                 document.getElementById('kpi-ph-dieu-hoa').innerHTML = errorMarkup;
                 document.getElementById('kpi-tss-dieu-hoa').innerHTML = errorMarkup;
@@ -1198,7 +1184,6 @@
                 document.getElementById('kpi-cod').innerHTML = errorMarkup;
                 document.getElementById('kpi-tss-val').innerHTML = errorMarkup;
 
-                // Set table values to empty
                 document.getElementById('tbl-val-tss-src').innerText = "N/A";
                 document.getElementById('tbl-val-tss-dest').innerText = "N/A";
                 document.getElementById('tbl-val-tn-src').innerText = "N/A";
@@ -1215,7 +1200,6 @@
                 document.getElementById('tbl-eff-cod').innerText = "--";
                 document.getElementById('tbl-eff-ph').innerText = "--";
 
-                // Update charts to empty state
                 tssChartInstance.data.datasets.forEach(d => d.data = [null, null, null, null, null, null, null]);
                 npChartInstance.data.datasets.forEach(d => d.data = [null, null, null, null, null, null, null]);
                 codChartInstance.data.datasets.forEach(d => d.data = [null, null, null, null, null, null, null]);
@@ -1226,7 +1210,6 @@
                 codChartInstance.update();
                 phChartInstance.update();
             } else {
-                // Return to normal
                 btn.innerHTML = `<i class="fa-solid fa-triangle-exclamation animate-pulse"></i> <span>Giả lập lỗi "No Data"</span>`;
                 btn.className = "flex items-center gap-2 px-3 py-1 bg-rose-950/40 text-rose-400 hover:bg-rose-900/50 border border-rose-800/60 rounded-lg text-xs font-semibold transition-all";
                 
@@ -1236,7 +1219,6 @@
                 txtSysStatus.className = "text-lg font-bold text-slate-100";
                 txtLastUpdate.innerText = "Vừa xong";
 
-                // Reload original datasets to charts
                 tssChartInstance.data.datasets[0].data = tssDieuHoaData;
                 tssChartInstance.data.datasets[1].data = tssSuCoData;
                 
@@ -1258,19 +1240,16 @@
             }
         }
 
-        // Action button interaction
         function acknowledgeAlarm(btn) {
             btn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i>Đã Xử Lý`;
             btn.className = "px-2 py-0.5 bg-emerald-950/40 text-emerald-400 border border-emerald-800/50 rounded text-[10px]";
             btn.disabled = true;
         }
 
-        // On document ready
         window.addEventListener('load', () => {
             switchTheme('navy'); // Default theme
             filterZone('all');
 
-            // Start Live Data Query Loop
             fetchTelemetryData();
             setInterval(fetchTelemetryData, CONFIG.refreshInterval);
         });
